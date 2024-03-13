@@ -61,6 +61,11 @@ def getTQQQInfo():
 
     options = Options()
     options.add_argument('--headless')
+    options.add_argument("--start-maximized") #open Browser in maximized mode
+    options.add_argument("--no-sandbox") #bypass OS security model
+    options.add_argument("--disable-dev-shm-usage") #overcome limited resource problems
+    options.add_experimental_option("excludeSwitches", ["enable-automation"])
+    options.add_experimental_option('useAutomationExtension', False)
     options.add_experimental_option('excludeSwitches', ['enable-logging'])
     driver = webdriver.Chrome(executable_path=chrome_driver_path, options=options)
     driver.get('https://www.tradingview.com/symbols/NASDAQ-TQQQ/technicals/')
