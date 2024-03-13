@@ -56,10 +56,13 @@ def check_container(driver, container_css):
         return False
 
 def getTQQQInfo():
+
+    chrome_driver_path = '/home/tristan/chromedriver/chromedriver'
+
     options = Options()
     options.add_argument('--headless')
     options.add_experimental_option('excludeSwitches', ['enable-logging'])
-    driver = webdriver.Chrome(options=options)
+    driver = webdriver.Chrome(executable_path=chrome_driver_path, options=options)
     driver.get('https://www.tradingview.com/symbols/NASDAQ-TQQQ/technicals/')
     driver.implicitly_wait(10)
 
