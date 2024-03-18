@@ -12,7 +12,7 @@ import json
 import time
 
 csvInfo ={
-    "date": 0,
+    "date": "0",
     "current": 0,
     "prediction": "0",
     "close": 0
@@ -67,7 +67,7 @@ def getTQQQInfo():
     options.add_experimental_option("excludeSwitches", ["enable-automation"])
     options.add_experimental_option('useAutomationExtension', False)
     options.add_experimental_option('excludeSwitches', ['enable-logging'])
-    driver = webdriver.Chrome(executable_path=chrome_driver_path, options=options)
+    driver = webdriver.Chrome(options=options)
     driver.get('https://www.tradingview.com/symbols/NASDAQ-TQQQ/technicals/')
     driver.implicitly_wait(10)
 
@@ -115,7 +115,7 @@ def is_market_open_today():
 
 def get_current_price():
     stock = yf.Ticker('TQQQ')
-    data = stock.history()
+    data = stock.history(period="1d")
     price = data['Close'].iloc[-1]
     csvInfo["current"] = price
     return price
@@ -128,30 +128,32 @@ def get_top_news():
     keywords = 'stock market OR trading OR NYSE OR NASDAQ'
 
     # Fetch the news headlines containing the specified keywords
-    news = newsapi.get_everything(q=keywords, language='en', sort_by='relevancy')
+    news = newsapi.get_everything(q = keywords, language='en', sort_by='relevancy')
 
     # Create an empty string to store the news headlines
     headlines_string = ""
 
-    # Concatenate the titles and URLs of the news articles
-    for article in news['articles'][:3]:
-        headlines_string += f"{article['title']}\n{article['url']}\n\n"
+    # Concatenate the short titles of the news articles
+    for article in news['articles'][:1]:
+        # Extract the title of the article
+        title = article['title']
+        # Truncate the title to a certain length (e.g., 60 characters)
+        short_title = title[:60] + '...' if len(title) > 60 else title
+        # Append the short title to the headlines_string
+        headlines_string += f"{short_title}\n"
 
-    return headlines_string
+    return headlines_string[20:]
 
 def get_morning_message():
     
 
     today_open = is_market_open_today()
 
-    current = get_current_price()
-    csvInfo["current"] = current
-
     if today_open:
         tqqqInfo = getTQQQInfo()
 
         buy_indicator = ""
-        if tqqqInfo == "Strong Buy":
+        if tqqqInfo == "Strong Buy" or tqqqInfo == "Buy":
             buy_indicator = random.choice(["🚀", "💼", "💹", "💰", "📈🔥"])
         elif tqqqInfo == "Sell" or tqqqInfo == "Strong Sell":
             buy_indicator = random.choice(["📉", "💔", "🔻", "⚠️"])
@@ -219,13 +221,13 @@ def get_morning_message():
     # Variations for "Here's what's buzzing"
     buzzing_variations = [
         "Here's what's making waves today:",
-        "Catch up on the latest headlines:",
-        "Dive into today's top stories:",
-        "Stay in the loop with these updates:",
+        "Catch up on the latest headline:",
+        "Dive into today's top story:",
+        "Stay in the loop with this update:",
         "Get the scoop on what's happening:",
-        "Stay informed with these highlights:",
+        "Stay informed with this highlight:",
         "Discover what's trending right now:",
-        "Explore today's news highlights:",
+        "Explore today's news highlight:",
     ]
 
     buzzing_message = random.choice(buzzing_variations)
@@ -242,7 +244,7 @@ def get_closing_price():
         stock = yf.Ticker('TQQQ')
         data = stock.history(period="2d")  # Retrieve data for the last 2 days
         previous_close_price = data['Close'].iloc[-2]  # Get the second to last entry
-        csvInfo["previous_close"] = previous_close_price
+        csvInfo["close"] = previous_close_price
         return previous_close_price
     
     except Exception as e:
@@ -267,18 +269,20 @@ def write_to_csv():
         print(f"Error occurred: {e}")
 
 filename = "hashmap.json"
+today_open = is_market_open_today()
 
-#read in json
-with open(filename, "r") as file:
-    csvInfo = json.load(file)
+if today_open:
+    #read in json
+    with open(filename, "r") as file:
+        csvInfo = json.load(file)
 
-write_to_csv()
+    write_to_csv()
+    get_current_price()
 
-#save to json
-with open(filename, "w") as file:
-    json.dump(csvInfo, file)
+    csvInfo["date"] = str(datetime.date.today())
+
+    #save to json
+    with open(filename, "w") as file:
+        json.dump(csvInfo, file)
 
 print(get_morning_message())
-
-#time.sleep(10)
-        
