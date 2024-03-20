@@ -12,7 +12,7 @@ import json
 import time
 
 csvInfo ={
-    "date": "0",
+    "date": 0,
     "current": 0,
     "prediction": "0",
     "close": 0
@@ -115,7 +115,7 @@ def is_market_open_today():
 
 def get_current_price():
     stock = yf.Ticker('TQQQ')
-    data = stock.history(period="1d")
+    data = stock.history()
     price = data['Close'].iloc[-1]
     csvInfo["current"] = price
     return price
@@ -123,37 +123,37 @@ def get_current_price():
 def get_top_news():
     # Hardcoded API key (replace with your actual News API key)
     newsapi = NewsApiClient(api_key='6fbcec8e7c5d4656add8d12bcc95b938')
-
+w
     # Fetch the news headlines for the specified topic
     keywords = 'stock market OR trading OR NYSE OR NASDAQ'
 
     # Fetch the news headlines containing the specified keywords
-    news = newsapi.get_everything(q = keywords, language='en', sort_by='relevancy')
+    news = newsapi.get_everything(q=keywords, language='en', sort_by='relevancy')
 
     # Create an empty string to store the news headlines
     headlines_string = ""
 
-    # Concatenate the short titles of the news articles
-    for article in news['articles'][:1]:
-        # Extract the title of the article
-        title = article['title']
-        # Truncate the title to a certain length (e.g., 60 characters)
-        short_title = title[:60] + '...' if len(title) > 60 else title
-        # Append the short title to the headlines_string
-        headlines_string += f"{short_title}\n"
+    # Concatenate the titles and URLs of the news articles
+    for article in news['articles'][:3]:
+        
+	title = article['title]
+	headlines_string += f"{title}\n\n"
 
-    return headlines_string[20:]
+    return headlines_string
 
 def get_morning_message():
     
 
     today_open = is_market_open_today()
 
+    current = get_current_price()
+    csvInfo["current"] = current
+
     if today_open:
         tqqqInfo = getTQQQInfo()
 
         buy_indicator = ""
-        if tqqqInfo == "Strong Buy" or tqqqInfo == "Buy":
+        if tqqqInfo == "Strong Buy":
             buy_indicator = random.choice(["🚀", "💼", "💹", "💰", "📈🔥"])
         elif tqqqInfo == "Sell" or tqqqInfo == "Strong Sell":
             buy_indicator = random.choice(["📉", "💔", "🔻", "⚠️"])
@@ -221,13 +221,13 @@ def get_morning_message():
     # Variations for "Here's what's buzzing"
     buzzing_variations = [
         "Here's what's making waves today:",
-        "Catch up on the latest headline:",
-        "Dive into today's top story:",
-        "Stay in the loop with this update:",
+        "Catch up on the latest headlines:",
+        "Dive into today's top stories:",
+        "Stay in the loop with these updates:",
         "Get the scoop on what's happening:",
-        "Stay informed with this highlight:",
+        "Stay informed with these highlights:",
         "Discover what's trending right now:",
-        "Explore today's news highlight:",
+        "Explore today's news highlights:",
     ]
 
     buzzing_message = random.choice(buzzing_variations)
@@ -244,7 +244,7 @@ def get_closing_price():
         stock = yf.Ticker('TQQQ')
         data = stock.history(period="2d")  # Retrieve data for the last 2 days
         previous_close_price = data['Close'].iloc[-2]  # Get the second to last entry
-        csvInfo["close"] = previous_close_price
+        csvInfo["previous_close"] = previous_close_price
         return previous_close_price
     
     except Exception as e:
@@ -269,21 +269,18 @@ def write_to_csv():
         print(f"Error occurred: {e}")
 
 filename = "hashmap.json"
-today_open = is_market_open_today()
 
-if today_open:
-    #read in json
-    with open(filename, "r") as file:
-        csvInfo = json.load(file)
+#read in json
+with open(filename, "r") as file:
+    csvInfo = json.load(file)
 
-    write_to_csv()
-    get_current_price()
+write_to_csv()
 
-    csvInfo["date"] = str(datetime.date.today())
-    print(get_morning_message())
+#save to json
+with open(filename, "w") as file:
+    json.dump(csvInfo, file)
 
-    #save to json
-    with open(filename, "w") as file:
-        json.dump(csvInfo, file)
-else:
-    print(get_morning_message())
+print(get_morning_message())
+
+#time.sleep(10)
+        
