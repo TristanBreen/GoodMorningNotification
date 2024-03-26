@@ -13,7 +13,7 @@ import time
 
 csvInfo ={
     "date": "0",
-    "current": 0,
+    "open": 0,
     "prediction": "0",
     "close": 0
 }
@@ -113,11 +113,11 @@ def is_market_open_today():
     csvInfo["date"] = str(today)
     return is_market_open_on_date(today)
 
-def get_current_price():
+def get_open_price():
     stock = yf.Ticker('TQQQ')
     data = stock.history(period="1d")
-    price = data['Close'].iloc[-1]
-    csvInfo["current"] = price
+    price = data['Open'].iloc[-1]
+    csvInfo["open"] = price
     return price
 
 def get_top_news():
@@ -261,7 +261,7 @@ def write_to_csv():
         # Write data to CSV file
         with open(filename, "a", newline="") as csv_file:
             csv_writer = csv.writer(csv_file)
-            csv_writer.writerow([csvInfo["date"], csvInfo["current"], csvInfo["prediction"], csvInfo["close"]])
+            csv_writer.writerow([csvInfo["date"], csvInfo["open"], csvInfo["prediction"], csvInfo["close"]])
 
         #print("Data has been written to", filename)
 
@@ -277,7 +277,7 @@ if today_open:
         csvInfo = json.load(file)
 
     write_to_csv()
-    get_current_price()
+    get_open_price()
 
     csvInfo["date"] = str(datetime.date.today())
     print(get_morning_message())

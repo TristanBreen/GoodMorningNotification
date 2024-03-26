@@ -1,1 +1,2 @@
-Date, CurrentPrice,Prediction, Close
+Date, Open,Prediction, Close
+START,0,START,0
